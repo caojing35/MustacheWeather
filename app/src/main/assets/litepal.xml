@@ -1,0 +1,9 @@
+<litepal>
+    <dbname value="mustache_weather"/>
+    <version value="1"/>
+    <list>
+        <mapping class="com.mustacheweather.android.db.Province"/>
+        <mapping class="com.mustacheweather.android.db.City"/>
+        <mapping class="com.mustacheweather.android.db.County"/>
+    </list>
+</litepal>
