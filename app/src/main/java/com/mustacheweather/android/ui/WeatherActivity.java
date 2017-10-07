@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -46,6 +48,8 @@ public class WeatherActivity extends AppCompatActivity {
 
     private TextView pm25text;
 
+    private static final String TAG = "WeatherActivity";
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,15 +64,21 @@ public class WeatherActivity extends AppCompatActivity {
         aqiText = (TextView) findViewById(R.id.aqi_text);
         pm25text = (TextView) findViewById(R.id.pm25_text);
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String weatherId = getIntent().getStringExtra("weather_id");
+        if (TextUtils.isEmpty(weatherId))
+        {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        String weatherString = prefs.getString("weather", null);
-        if (weatherString != null){
-            //有缓存报文时直接解析天气数据
-            Weather weather = GsonUtil.handleWeatherResponse(weatherString);
-            showWeatherInfo(weather);
+            String weatherString = prefs.getString("weather", null);
+            if (weatherString != null) {
+                //有缓存报文时直接解析天气数据
+                Weather weather = GsonUtil.handleWeatherResponse(weatherString);
+                showWeatherInfo(weather);
+            }
+
+            Log.e(TAG, "onCreate: weatherId is empty and pref is empty.");
+            finish();
         } else {
-            String weatherId = getIntent().getStringExtra("weather_id");
             weatherLayout.setVisibility(View.INVISIBLE);
             requestWeather(weatherId);
         }
