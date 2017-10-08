@@ -19,6 +19,8 @@ import com.mustacheweather.android.R;
 import com.mustacheweather.android.db.City;
 import com.mustacheweather.android.db.County;
 import com.mustacheweather.android.db.Province;
+import com.mustacheweather.android.ui.area.AreaActivity;
+import com.mustacheweather.android.ui.weather.WeatherActivity;
 import com.mustacheweather.android.util.GsonUtil;
 import com.mustacheweather.android.util.HttpUtil;
 

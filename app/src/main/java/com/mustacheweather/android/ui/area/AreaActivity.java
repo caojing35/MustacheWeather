@@ -1,4 +1,4 @@
-package com.mustacheweather.android.ui;
+package com.mustacheweather.android.ui.area;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
