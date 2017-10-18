@@ -4,7 +4,11 @@ import com.mustacheweather.android.db.AreaData;
 import com.mustacheweather.android.db.City;
 import com.mustacheweather.android.db.County;
 import com.mustacheweather.android.db.Province;
+import com.mustacheweather.android.util.AndroidKeyUtil;
 
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
 /**
@@ -31,6 +35,7 @@ public class AreaPresenter implements AreaConstract.Presenter {
 
     @Override
     public void selectProvince(Province province) {
+
         List<City> cities = areaData.getCitiesByProvince(province);
         view.setTitle(province.getProvinceName());
         view.showCity(cities);

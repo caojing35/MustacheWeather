@@ -3,8 +3,10 @@ package com.mustacheweather.android.ui;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.Pools;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +23,7 @@ import com.mustacheweather.android.db.County;
 import com.mustacheweather.android.db.Province;
 import com.mustacheweather.android.ui.area.AreaActivity;
 import com.mustacheweather.android.ui.weather.WeatherActivity;
+import com.mustacheweather.android.util.AndroidKeyUtil;
 import com.mustacheweather.android.util.GsonUtil;
 import com.mustacheweather.android.util.HttpUtil;
 
@@ -29,6 +32,8 @@ import org.litepal.crud.DataSupport;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.SecretKey;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -93,6 +98,11 @@ public class ChooseAreaFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (currentLevel){
                     case LEVEL_PROVINCE:
+                        SecretKey secretKey = AndroidKeyUtil.generateAndSaveKey();
+                        SecretKey loadKey = AndroidKeyUtil.loadKey();
+                        byte[] encStr = AndroidKeyUtil.encrypt("TestAndroidUtil", secretKey);
+                        String decStr = AndroidKeyUtil.decrypt(encStr, secretKey);
+                        System.out.println(decStr);
                         selectedProvince = provinceList.get(position);
                         queryCities();
                         break;

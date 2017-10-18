@@ -10,7 +10,7 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 
 import com.mustacheweather.android.gson.Weather;
-import com.mustacheweather.android.ui.WeatherActivity;
+import com.mustacheweather.android.ui.weather.WeatherActivity;
 import com.mustacheweather.android.util.GsonUtil;
 import com.mustacheweather.android.util.HttpUtil;
 
