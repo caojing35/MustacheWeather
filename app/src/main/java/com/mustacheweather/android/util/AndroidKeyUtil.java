@@ -1,11 +1,8 @@
 package com.mustacheweather.android.util;
 
-import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
-import android.os.Handler;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-import android.util.Base64;
 import android.util.Log;
 
 import java.io.IOException;
@@ -17,7 +14,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -25,9 +21,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
 
 /**
  * Created by caojing on 2017/10/18.
@@ -35,28 +29,24 @@ import javax.crypto.spec.PBEKeySpec;
 
 public class AndroidKeyUtil {
 
-    private final static String HEX = "0123456789ABCDEF";
-    private  static final String CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";//AES是加密方式 CBC是工作模式 PKCS5Padding是填充模式
-    private  static final String AES = "AES";//AES 加密
-    private  static final String  SHA1PRNG="SHA1PRNG";//// SHA1PRNG 强随机种子算法, 要区别4.2以上版本的调用方法
-
     private static final String TAG = "AndroidKeyUtil";
 
-    private static byte[] mIV = null;
+    public static byte[] mIV = null;
+
+    public static SecretKey getKey(){
+        SecretKey secretKey = loadKey();
+        if (secretKey == null){
+            Log.w(TAG, "getKey: need generate new key.");
+            secretKey = generateAndSaveKey();
+        }
+        return secretKey;
+    }
 
     public static SecretKey generateAndSaveKey() {
 
 
         try {
-            KeyStore store = KeyStore.getInstance(KeyStore.getDefaultType());
-//            KeyStore mKeyStore = KeyStore.getInstance("jks");
-//            PBEKeySpec keySpec = new PBEKeySpec("TestContent".toCharArray());
-//            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("AES/CBC/PKCS7Padding");
-//            SecretKey key = keyFactory.generateSecret(keySpec);
-//            KeyStore.SecretKeyEntry entry = new KeyStore.SecretKeyEntry(key);
-            //存储key
-            //mKeyStore.setEntry("weatherKey", entry, new KeyStore.PasswordProtection(psw.toCharArray()));
-
+            KeyStore store = KeyStore.getInstance("AndroidKeyStore");
             final KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
             final int purpose = KeyProperties.PURPOSE_DECRYPT | KeyProperties.PURPOSE_ENCRYPT;
             store.load(null);
@@ -94,7 +84,7 @@ public class AndroidKeyUtil {
 
     public static SecretKey loadKey() {
         try {
-            KeyStore mKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            KeyStore mKeyStore = KeyStore.getInstance("AndroidKeyStore");
             mKeyStore.load(null);
             final SecretKey key = (SecretKey) mKeyStore.getKey("weatherKey", null);
             return key;
@@ -115,18 +105,14 @@ public class AndroidKeyUtil {
         return null;
     }
 
-    public static byte[] encrypt(String content, SecretKey key){
+    public static byte[] encrypt(byte[] plaintext, SecretKey key){
         try {
             Cipher cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"+ KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7);
             cipher.init(Cipher.ENCRYPT_MODE, key);
             final FingerprintManager.CryptoObject crypto;
-            byte[] encrypted = cipher.doFinal(content.getBytes());
+            byte[] ciphertext = cipher.doFinal(plaintext);
             mIV = cipher.getIV();
-            return encrypted;
-            //String result= Base64.encodeToString(encrypted, Base64.URL_SAFE);
-            //Log.d(TAG, "result:" + result);
-
-            //return result;
+            return ciphertext;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (NoSuchPaddingException e) {
@@ -142,15 +128,13 @@ public class AndroidKeyUtil {
         return null;
     }
 
-    public static String decrypt(byte[] content, SecretKey key){
+    public static byte[] decrypt(byte[] ciphertext, SecretKey key){
         final Cipher cipher;
         try {
             cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"+ KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7);
             cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(mIV));
-            byte[] decrypted = cipher.doFinal(content);
-            String result = new String(decrypted);
-            Log.d(TAG, "Decrypted result is:\n" + result + "\n");
-            return result;
+            byte[] plaintext = cipher.doFinal(ciphertext);
+            return plaintext;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (NoSuchPaddingException e) {
@@ -165,7 +149,7 @@ public class AndroidKeyUtil {
             e.printStackTrace();
         }
 
-        return "";
+        return null;
     }
 
 }

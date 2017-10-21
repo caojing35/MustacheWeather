@@ -1,4 +1,11 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.greenrobot.greendao'
+
+greendao {
+    schemaVersion 1
+    daoPackage 'com.mustacheweather.android.greendao'
+    targetGenDir 'src/main/java'
+}
 
 android {
     compileSdkVersion 25
@@ -24,6 +31,11 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    compile 'org.greenrobot:greendao-encryption:2.2.2'
+    compile 'net.zetetic:android-database-sqlcipher:3.5.1'
+    compile 'org.greenrobot:greendao:3.2.2'
+    //compile 'org.greenrobot:greendao-generator:3.0.0'
+    compile 'org.greenrobot:greendao-generator-encryption:2.2.0'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
     compile 'org.litepal.android:core:1.4.1'

@@ -18,12 +18,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mustacheweather.android.R;
-import com.mustacheweather.android.db.City;
-import com.mustacheweather.android.db.County;
-import com.mustacheweather.android.db.Province;
+import com.mustacheweather.android.greendao.City;
+import com.mustacheweather.android.greendao.CityDao;
+import com.mustacheweather.android.greendao.County;
+import com.mustacheweather.android.greendao.CountyDao;
+import com.mustacheweather.android.greendao.Province;
+import com.mustacheweather.android.greendao.DaoSession;
+import com.mustacheweather.android.greendao.ProvinceDao;
 import com.mustacheweather.android.ui.area.AreaActivity;
 import com.mustacheweather.android.ui.weather.WeatherActivity;
 import com.mustacheweather.android.util.AndroidKeyUtil;
+import com.mustacheweather.android.util.Environment;
 import com.mustacheweather.android.util.GsonUtil;
 import com.mustacheweather.android.util.HttpUtil;
 
@@ -98,11 +103,6 @@ public class ChooseAreaFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (currentLevel){
                     case LEVEL_PROVINCE:
-                        SecretKey secretKey = AndroidKeyUtil.generateAndSaveKey();
-                        SecretKey loadKey = AndroidKeyUtil.loadKey();
-                        byte[] encStr = AndroidKeyUtil.encrypt("TestAndroidUtil", secretKey);
-                        String decStr = AndroidKeyUtil.decrypt(encStr, secretKey);
-                        System.out.println(decStr);
                         selectedProvince = provinceList.get(position);
                         queryCities();
                         break;
@@ -151,7 +151,9 @@ public class ChooseAreaFragment extends Fragment {
     private void queryProvinces(){
         titleText.setText("中国");
         backButton.setVisibility(View.GONE);
-        provinceList = DataSupport.findAll(Province.class);
+        ProvinceDao provinceDao = Environment.getDaoSession().getProvinceDao();
+
+        provinceList = provinceDao.loadAll();
         if (provinceList.size() > 0){
             dataList.clear();
             for (Province province : provinceList){
@@ -169,7 +171,9 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCities(){
         titleText.setText(selectedProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
-        cityList = DataSupport.where("provinceid = ?", String.valueOf(selectedProvince.getId())).find(City.class);
+        cityList = Environment.getDaoSession().getCityDao().queryBuilder()
+                .where(CityDao.Properties.ProvinceId.eq(selectedProvince.getId()))
+                .list();
         if (cityList.size() > 0){
             dataList.clear();
             for (City city : cityList){
@@ -188,7 +192,9 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCounties(){
         titleText.setText(selectedCity.getCityName());
         backButton.setVisibility(View.VISIBLE);
-        countyList = DataSupport.where("cityid = ?", String.valueOf(selectedCity.getId())).find(County.class);
+        countyList = Environment.getDaoSession().getCountyDao().queryBuilder()
+                .where(CountyDao.Properties.CityId.eq(selectedCity.getId()))
+                .list();
         if (countyList.size() > 0){
             dataList.clear();
             for (County county : countyList){

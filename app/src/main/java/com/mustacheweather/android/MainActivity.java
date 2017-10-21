@@ -18,6 +18,9 @@ import android.view.ViewGroup;
 
 import android.widget.TextView;
 
+import com.mustacheweather.android.greendao.DaoSession;
+import com.mustacheweather.android.greendao.ProvinceDao;
+
 public class MainActivity extends AppCompatActivity {
 
     /**
@@ -50,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+
 
     }
 

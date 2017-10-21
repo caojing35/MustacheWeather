@@ -4,6 +4,10 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.mustacheweather.android.greendao.City;
+import com.mustacheweather.android.greendao.County;
+import com.mustacheweather.android.greendao.Province;
+
 /**
  * Created by caojing on 2017/10/8.
  */

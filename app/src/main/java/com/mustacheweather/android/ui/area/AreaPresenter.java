@@ -1,9 +1,9 @@
 package com.mustacheweather.android.ui.area;
 
 import com.mustacheweather.android.db.AreaData;
-import com.mustacheweather.android.db.City;
-import com.mustacheweather.android.db.County;
-import com.mustacheweather.android.db.Province;
+import com.mustacheweather.android.greendao.City;
+import com.mustacheweather.android.greendao.County;
+import com.mustacheweather.android.greendao.Province;
 import com.mustacheweather.android.util.AndroidKeyUtil;
 
 import java.security.KeyStoreException;
