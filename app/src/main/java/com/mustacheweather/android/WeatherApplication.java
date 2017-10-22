@@ -4,18 +4,15 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.model.GlideUrl;
 import com.mustacheweather.android.greendao.DaoMaster;
-import com.mustacheweather.android.greendao.DaoSession;
 import com.mustacheweather.android.util.AndroidKeyUtil;
 import com.mustacheweather.android.util.Environment;
 import com.mustacheweather.android.util.MathUtil;
-import com.mustacheweather.android.util.SecureDecoder;
+import com.mustacheweather.android.util.secure.SecureDecoder;
 import com.mustacheweather.android.util.secure.SecureEncoder;
 import com.mustacheweather.android.util.secure.UsherImageModelLoader;
 
@@ -23,7 +20,6 @@ import org.greenrobot.greendao.database.Database;
 
 import java.io.File;
 import java.io.InputStream;
-import java.security.SecureRandom;
 
 import javax.crypto.SecretKey;
 
@@ -35,26 +31,25 @@ public class WeatherApplication extends Application {
 
     private static String PERFKEY_DB_PWD = "PREF_DBPWD";
 
-    private static String PERFKEY_KEY_IV = "PREF_KEYIV";
 
     private static final String TAG = "WeatherApplication";
 
     @Override
     public void onCreate() {
         super.onCreate();
+        Environment.setContext(this);
+        AndroidKeyUtil.init();
         initSecureDb();
         initSecureGlide();
-
-
 
     }
 
     private void initSecureGlide(){
         Glide glide = Glide.get(this);
-        glide.register(String.class, InputStream.class, new UsherImageModelLoader.Factory());
-//        registry.append(String.class, InputStream.class, new UsherImageModelLoader.Factory());
-//        registry.prepend(InputStream.class, new SecureEncoder());
-//        registry.prepend(File.class, Bitmap.class, new SecureDecoder(glide.getBitmapPool()));
+        glide.getRegistry()
+                .append(String.class, InputStream.class, new UsherImageModelLoader.Factory())
+                .prepend(InputStream.class, new SecureEncoder())
+                .prepend(File.class, Bitmap.class, new SecureDecoder(glide.getBitmapPool()));
     }
 
     private void initSecureDb(){
@@ -70,14 +65,10 @@ public class WeatherApplication extends Application {
             cipherPwdStr = Base64.encodeToString(pwd, Base64.DEFAULT);
             Log.w(TAG, "onCreate: cipherPwd: " + cipherPwdStr);
             pref.edit().putString(PERFKEY_DB_PWD, cipherPwdStr).apply();
-
-            String base64IV = Base64.encodeToString(AndroidKeyUtil.mIV, Base64.DEFAULT);
-            pref.edit().putString(PERFKEY_KEY_IV, base64IV).apply();
+            AndroidKeyUtil.storeIV();
 
         } else {
             Log.w(TAG, "onCreate: get cipherPwd: " + cipherPwdStr);
-            String base64IV = pref.getString(PERFKEY_KEY_IV, null);
-            AndroidKeyUtil.mIV = Base64.decode(base64IV, Base64.DEFAULT);
             byte[] cipherPwdByte = Base64.decode(cipherPwdStr, Base64.DEFAULT);
             byte[] plaintext = AndroidKeyUtil.decrypt(cipherPwdByte, key);
             relPwd = new String(plaintext);

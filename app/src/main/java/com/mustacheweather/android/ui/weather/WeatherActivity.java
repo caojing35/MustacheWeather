@@ -135,58 +135,59 @@ public class WeatherActivity extends AppCompatActivity {
         if (bingPic != null){
             Glide.with(this).load(bingPic).into(bingPicImg);
             Glide.with(this)
-                    .load(bingPic)
-                    .asBitmap().cacheDecoder(new ResourceDecoder<File, Bitmap>() {
-                @Override
-                public Resource<Bitmap> decode(File source, int width, int height) throws IOException {
-                    return null;
-                }
-
-                @Override
-                public String getId() {
-                    return null;
-                }
-            })
-                    .encoder(new ResourceEncoder<Bitmap>() {
-                        @Override
-                        public boolean encode(Resource<Bitmap> data, OutputStream os) {
-                            BitmapEncoder encoder = new BitmapEncoder();
-
-                            final Bitmap bitmap = data.get();
-
-                            long start = LogTime.getLogTime();
-                            Bitmap.CompressFormat format = getFormat(bitmap);
-                            bitmap.compress(format, 100, os);
-                            Log.i(TAG, "Compressed with type: " + format + " of size " + Util.getBitmapByteSize(bitmap) + " in "
-                                        + LogTime.getElapsedMillis(start));
-
-                            return true;
-                        }
-
-                        @Override
-                        public String getId() {
-                            return "BitmapEncoder.com.mustacheweather.android.ui.weather";
-                        }
-
-                        private Bitmap.CompressFormat getFormat(Bitmap bitmap) {
-                            if (bitmap.hasAlpha()) {
-                                return Bitmap.CompressFormat.PNG;
-                            } else {
-                                return Bitmap.CompressFormat.JPEG;
-                            }
-                        }
-                    })
-                    .imageDecoder(new ResourceDecoder<InputStream, Bitmap>() {
-                        @Override
-                        public Resource<Bitmap> decode(InputStream source, int width, int height) throws IOException {
-                            return null;
-                        }
-
-                        @Override
-                        public String getId() {
-                            return "BitmapDecoder.com.mustacheweather.android.ui.weather";
-                        }
-            }).into(bingPicImg);
+                    .load(bingPic).into(bingPicImg);
+//
+//                    .cacheDecoder(new ResourceDecoder<File, Bitmap>() {
+//                @Override
+//                public Resource<Bitmap> decode(File source, int width, int height) throws IOException {
+//                    return null;
+//                }
+//
+//                @Override
+//                public String getId() {
+//                    return null;
+//                }
+//            })
+//                    .encoder(new ResourceEncoder<Bitmap>() {
+//                        @Override
+//                        public boolean encode(Resource<Bitmap> data, OutputStream os) {
+//                            BitmapEncoder encoder = new BitmapEncoder();
+//
+//                            final Bitmap bitmap = data.get();
+//
+//                            long start = LogTime.getLogTime();
+//                            Bitmap.CompressFormat format = getFormat(bitmap);
+//                            bitmap.compress(format, 100, os);
+//                            Log.i(TAG, "Compressed with type: " + format + " of size " + Util.getBitmapByteSize(bitmap) + " in "
+//                                        + LogTime.getElapsedMillis(start));
+//
+//                            return true;
+//                        }
+//
+//                        @Override
+//                        public String getId() {
+//                            return "BitmapEncoder.com.mustacheweather.android.ui.weather";
+//                        }
+//
+//                        private Bitmap.CompressFormat getFormat(Bitmap bitmap) {
+//                            if (bitmap.hasAlpha()) {
+//                                return Bitmap.CompressFormat.PNG;
+//                            } else {
+//                                return Bitmap.CompressFormat.JPEG;
+//                            }
+//                        }
+//                    })
+//                    .imageDecoder(new ResourceDecoder<InputStream, Bitmap>() {
+//                        @Override
+//                        public Resource<Bitmap> decode(InputStream source, int width, int height) throws IOException {
+//                            return null;
+//                        }
+//
+//                        @Override
+//                        public String getId() {
+//                            return "BitmapDecoder.com.mustacheweather.android.ui.weather";
+//                        }
+//            }).
         } else {
             loadBingPic();
         }
@@ -261,6 +262,7 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 final String responseText = response.body().string();
+                Log.i(TAG, "requestWeather.onResponse: " + responseText);
                 final Weather weather = GsonUtil.handleWeatherResponse(responseText);
                 runOnUiThread(new Runnable() {
                     @Override

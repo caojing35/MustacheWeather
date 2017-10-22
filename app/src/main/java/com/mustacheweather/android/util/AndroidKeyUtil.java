@@ -1,8 +1,11 @@
 package com.mustacheweather.android.util;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.fingerprint.FingerprintManager;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.util.Base64;
 import android.util.Log;
 
 import java.io.IOException;
@@ -30,6 +33,8 @@ import javax.crypto.spec.IvParameterSpec;
 public class AndroidKeyUtil {
 
     private static final String TAG = "AndroidKeyUtil";
+
+    private static String PERFKEY_KEY_IV = "PREF_KEYIV";
 
     public static byte[] mIV = null;
 
@@ -108,10 +113,16 @@ public class AndroidKeyUtil {
     public static byte[] encrypt(byte[] plaintext, SecretKey key){
         try {
             Cipher cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"+ KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7);
-            cipher.init(Cipher.ENCRYPT_MODE, key);
+            if (mIV != null){
+                cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(mIV));
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, key);
+            }
             final FingerprintManager.CryptoObject crypto;
             byte[] ciphertext = cipher.doFinal(plaintext);
-            mIV = cipher.getIV();
+            if (mIV == null) {
+                mIV = cipher.getIV();
+            }
             return ciphertext;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -122,6 +133,8 @@ public class AndroidKeyUtil {
         } catch (IllegalBlockSizeException e) {
             e.printStackTrace();
         } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
 
@@ -152,4 +165,17 @@ public class AndroidKeyUtil {
         return null;
     }
 
+    public static void init(){
+        SharedPreferences pref = Environment.getContext().getSharedPreferences("cipherInfo", Context.MODE_PRIVATE);
+        String base64IV = pref.getString(PERFKEY_KEY_IV, null);
+        if (base64IV != null){
+            AndroidKeyUtil.mIV = Base64.decode(base64IV, Base64.DEFAULT);
+        }
+    }
+
+    public static void storeIV(){
+        SharedPreferences pref = Environment.getContext().getSharedPreferences("cipherInfo", Context.MODE_PRIVATE);
+        String base64IV = Base64.encodeToString(AndroidKeyUtil.mIV, Base64.DEFAULT);
+        pref.edit().putString(PERFKEY_KEY_IV, base64IV).apply();
+    }
 }
