@@ -3,18 +3,26 @@ package com.mustacheweather.android;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
 import com.mustacheweather.android.greendao.DaoMaster;
 import com.mustacheweather.android.greendao.DaoSession;
 import com.mustacheweather.android.util.AndroidKeyUtil;
 import com.mustacheweather.android.util.Environment;
 import com.mustacheweather.android.util.MathUtil;
+import com.mustacheweather.android.util.SecureDecoder;
+import com.mustacheweather.android.util.secure.SecureEncoder;
+import com.mustacheweather.android.util.secure.UsherImageModelLoader;
 
 import org.greenrobot.greendao.database.Database;
 
+import java.io.File;
+import java.io.InputStream;
 import java.security.SecureRandom;
 
 import javax.crypto.SecretKey;
@@ -34,7 +42,22 @@ public class WeatherApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        initSecureDb();
+        initSecureGlide();
 
+
+
+    }
+
+    private void initSecureGlide(){
+        Glide glide = Glide.get(this);
+        glide.register(String.class, InputStream.class, new UsherImageModelLoader.Factory());
+//        registry.append(String.class, InputStream.class, new UsherImageModelLoader.Factory());
+//        registry.prepend(InputStream.class, new SecureEncoder());
+//        registry.prepend(File.class, Bitmap.class, new SecureDecoder(glide.getBitmapPool()));
+    }
+
+    private void initSecureDb(){
         SharedPreferences pref = this.getSharedPreferences("dbinfo", Context.MODE_PRIVATE);
         String cipherPwdStr = pref.getString(PERFKEY_DB_PWD, null);
         SecretKey key = AndroidKeyUtil.getKey();

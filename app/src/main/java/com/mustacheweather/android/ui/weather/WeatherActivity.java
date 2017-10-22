@@ -2,6 +2,7 @@ package com.mustacheweather.android.ui.weather;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -21,6 +22,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.ResourceDecoder;
+import com.bumptech.glide.load.ResourceEncoder;
+import com.bumptech.glide.load.engine.Resource;
+import com.bumptech.glide.load.resource.bitmap.BitmapEncoder;
+import com.bumptech.glide.util.LogTime;
+import com.bumptech.glide.util.Util;
 import com.mustacheweather.android.R;
 import com.mustacheweather.android.gson.Forecast;
 import com.mustacheweather.android.gson.Weather;
@@ -28,7 +35,10 @@ import com.mustacheweather.android.service.AutoUpdateService;
 import com.mustacheweather.android.util.GsonUtil;
 import com.mustacheweather.android.util.HttpUtil;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -124,6 +134,59 @@ public class WeatherActivity extends AppCompatActivity {
         String bingPic = prefs.getString("bing_pic", null);
         if (bingPic != null){
             Glide.with(this).load(bingPic).into(bingPicImg);
+            Glide.with(this)
+                    .load(bingPic)
+                    .asBitmap().cacheDecoder(new ResourceDecoder<File, Bitmap>() {
+                @Override
+                public Resource<Bitmap> decode(File source, int width, int height) throws IOException {
+                    return null;
+                }
+
+                @Override
+                public String getId() {
+                    return null;
+                }
+            })
+                    .encoder(new ResourceEncoder<Bitmap>() {
+                        @Override
+                        public boolean encode(Resource<Bitmap> data, OutputStream os) {
+                            BitmapEncoder encoder = new BitmapEncoder();
+
+                            final Bitmap bitmap = data.get();
+
+                            long start = LogTime.getLogTime();
+                            Bitmap.CompressFormat format = getFormat(bitmap);
+                            bitmap.compress(format, 100, os);
+                            Log.i(TAG, "Compressed with type: " + format + " of size " + Util.getBitmapByteSize(bitmap) + " in "
+                                        + LogTime.getElapsedMillis(start));
+
+                            return true;
+                        }
+
+                        @Override
+                        public String getId() {
+                            return "BitmapEncoder.com.mustacheweather.android.ui.weather";
+                        }
+
+                        private Bitmap.CompressFormat getFormat(Bitmap bitmap) {
+                            if (bitmap.hasAlpha()) {
+                                return Bitmap.CompressFormat.PNG;
+                            } else {
+                                return Bitmap.CompressFormat.JPEG;
+                            }
+                        }
+                    })
+                    .imageDecoder(new ResourceDecoder<InputStream, Bitmap>() {
+                        @Override
+                        public Resource<Bitmap> decode(InputStream source, int width, int height) throws IOException {
+                            return null;
+                        }
+
+                        @Override
+                        public String getId() {
+                            return "BitmapDecoder.com.mustacheweather.android.ui.weather";
+                        }
+            }).into(bingPicImg);
         } else {
             loadBingPic();
         }
