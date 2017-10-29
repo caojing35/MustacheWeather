@@ -1,5 +1,6 @@
 package com.mustacheweather.android;
 
+import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -20,6 +21,7 @@ import org.greenrobot.greendao.database.Database;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 
@@ -37,10 +39,25 @@ public class WeatherApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        int pid = android.os.Process.myPid();
+        Log.i(TAG, "MyApplication onCreate");
+        Log.i(TAG, "MyApplication pid is " + pid);
         Environment.setContext(this);
-        AndroidKeyUtil.init();
-        initSecureDb();
-        initSecureGlide();
+        ActivityManager am = (ActivityManager)this.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> runningApps = am.getRunningAppProcesses();
+        if (runningApps != null && !runningApps.isEmpty()) {
+            for (ActivityManager.RunningAppProcessInfo procInfo : runningApps) {
+                if (procInfo.pid == pid) {
+                    if (procInfo.processName.equals("com.mustacheweather.android.test")) {
+                        Log.i(TAG, "process name is " + procInfo.processName);
+                    } else {
+                        AndroidKeyUtil.init();
+                        initSecureDb();
+                        initSecureGlide();
+                    }
+                }
+            }
+        }
 
     }
 

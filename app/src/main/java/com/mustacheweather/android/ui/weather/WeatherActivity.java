@@ -1,11 +1,15 @@
 package com.mustacheweather.android.ui.weather;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -32,6 +36,7 @@ import com.mustacheweather.android.R;
 import com.mustacheweather.android.gson.Forecast;
 import com.mustacheweather.android.gson.Weather;
 import com.mustacheweather.android.service.AutoUpdateService;
+import com.mustacheweather.android.util.AppPerfs;
 import com.mustacheweather.android.util.GsonUtil;
 import com.mustacheweather.android.util.HttpUtil;
 
@@ -79,6 +84,18 @@ public class WeatherActivity extends AppCompatActivity {
     public DrawerLayout drawerLayout;
 
     private Button navButton;
+
+    private BroadcastReceiver weatherUpdateBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "onReceive: receive weather autoupdate");
+            SharedPreferences sp = WeatherActivity.this.getSharedPreferences(AppPerfs.WEATHER, MODE_PRIVATE);
+            String weatherString = sp.getString("weather", "");
+            Weather weather = GsonUtil.handleWeatherResponse(weatherString);
+            Log.i(TAG, "onReceive: new weather info:" + weather.toString());
+            WeatherActivity.this.showWeatherInfo(weather);
+        }
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -129,69 +146,16 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences prefs = this.getSharedPreferences(AppPerfs.WEATHER, MODE_PRIVATE);
 
         String bingPic = prefs.getString("bing_pic", null);
         if (bingPic != null){
             Glide.with(this).load(bingPic).into(bingPicImg);
             Glide.with(this)
                     .load(bingPic).into(bingPicImg);
-//
-//                    .cacheDecoder(new ResourceDecoder<File, Bitmap>() {
-//                @Override
-//                public Resource<Bitmap> decode(File source, int width, int height) throws IOException {
-//                    return null;
-//                }
-//
-//                @Override
-//                public String getId() {
-//                    return null;
-//                }
-//            })
-//                    .encoder(new ResourceEncoder<Bitmap>() {
-//                        @Override
-//                        public boolean encode(Resource<Bitmap> data, OutputStream os) {
-//                            BitmapEncoder encoder = new BitmapEncoder();
-//
-//                            final Bitmap bitmap = data.get();
-//
-//                            long start = LogTime.getLogTime();
-//                            Bitmap.CompressFormat format = getFormat(bitmap);
-//                            bitmap.compress(format, 100, os);
-//                            Log.i(TAG, "Compressed with type: " + format + " of size " + Util.getBitmapByteSize(bitmap) + " in "
-//                                        + LogTime.getElapsedMillis(start));
-//
-//                            return true;
-//                        }
-//
-//                        @Override
-//                        public String getId() {
-//                            return "BitmapEncoder.com.mustacheweather.android.ui.weather";
-//                        }
-//
-//                        private Bitmap.CompressFormat getFormat(Bitmap bitmap) {
-//                            if (bitmap.hasAlpha()) {
-//                                return Bitmap.CompressFormat.PNG;
-//                            } else {
-//                                return Bitmap.CompressFormat.JPEG;
-//                            }
-//                        }
-//                    })
-//                    .imageDecoder(new ResourceDecoder<InputStream, Bitmap>() {
-//                        @Override
-//                        public Resource<Bitmap> decode(InputStream source, int width, int height) throws IOException {
-//                            return null;
-//                        }
-//
-//                        @Override
-//                        public String getId() {
-//                            return "BitmapDecoder.com.mustacheweather.android.ui.weather";
-//                        }
-//            }).
         } else {
             loadBingPic();
         }
-
 
         String tmpWeatherId = getIntent().getStringExtra("weather_id");
         if (TextUtils.isEmpty(tmpWeatherId))
@@ -212,6 +176,28 @@ public class WeatherActivity extends AppCompatActivity {
             mWeatherId = tmpWeatherId;
             requestWeather(tmpWeatherId);
         }
+
+        registerUpdateBroadcast();
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterUpdateBroadcast();
+        super.onDestroy();
+    }
+
+    private void registerUpdateBroadcast()
+    {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("com.mustacheweather.android.updateweather");
+        registerReceiver(this.weatherUpdateBroadcastReceiver, intentFilter);
+        //LocalBroadcastManager.getInstance(this).registerReceiver(this.weatherUpdateBroadcastReceiver, intentFilter);
+    }
+
+    private void unregisterUpdateBroadcast()
+    {
+        unregisterReceiver(this.weatherUpdateBroadcastReceiver);
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(this.weatherUpdateBroadcastReceiver);
     }
 
     private void loadBingPic(){
@@ -226,8 +212,8 @@ public class WeatherActivity extends AppCompatActivity {
             public void onResponse(Call call, Response response) throws IOException {
                 final String bingPic = response.body().string();
 
-                SharedPreferences.Editor editor = PreferenceManager.
-                        getDefaultSharedPreferences(WeatherActivity.this).
+                SharedPreferences.Editor editor = WeatherActivity.
+                        this.getSharedPreferences(AppPerfs.WEATHER, MODE_PRIVATE).
                         edit();
                 editor.putString("bing_pic", bingPic);
                 editor.apply();
@@ -268,8 +254,8 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if (weather != null){
-                            SharedPreferences.Editor editor = PreferenceManager.
-                                    getDefaultSharedPreferences(WeatherActivity.this).
+                            SharedPreferences.Editor editor = WeatherActivity.
+                                    this.getSharedPreferences(AppPerfs.WEATHER, MODE_PRIVATE).
                                     edit();
 
                             editor.putString("weather", responseText);
