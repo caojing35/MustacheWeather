@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<review xmlns="http://plugins.intellij.net/revu" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://plugins.intellij.net/revu http://plugins.intellij.net/revu/ns/revu_1_0.xsd" name="caojing" status="reviewing" shared="true">
+  <history createdBy="caojing" lastUpdatedBy="caojing" createdOn="2017-10-29 15:27:12 +0800" lastUpdatedOn="2017-10-29 15:27:30 +0800"/>
+  <goal></goal>
+  <referential>
+    <priorities>
+      <priority order="0" name="minor"/>
+      <priority order="1" name="normal"/>
+      <priority order="2" name="major"/>
+      <priority order="3" name="critical"/>
+    </priorities>
+    <tags>
+      <tag name="correctness"/>
+      <tag name="cosmetic"/>
+      <tag name="documentation"/>
+      <tag name="duplication"/>
+      <tag name="maintenability"/>
+      <tag name="optimization"/>
+      <tag name="portability"/>
+      <tag name="question"/>
+      <tag name="standard"/>
+    </tags>
+    <users>
+      <user displayName="aa" login="aa" roles="admin,reviewer,author"/>
+      <user displayName="caojing" login="caojing" roles="admin,reviewer,author"/>
+    </users>
+  </referential>
+  <filescope pathPattern="file[*]:*//*"/>
+  <issues>
+    <issue filePath="app/src/main/java/com/mustacheweather/android/util/BroadcastUtil.java" summary="ttt"
+        localRev="1509262073025" lineStart="13" lineEnd="13" hash="960481580" tags="documentation,duplication"
+        priority="critical" status="to_resolve">
+      <history createdBy="caojing" lastUpdatedBy="caojing" createdOn="2017-10-29 15:27:53 +0800"
+          lastUpdatedOn="2017-10-29 15:27:53 +0800"/>
+      <desc>tt</desc>
+    </issue>
+  </issues>
+</review>
